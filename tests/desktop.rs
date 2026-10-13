@@ -133,6 +133,7 @@ struct Capture {
     fail_start: AtomicBool,
     started: AtomicUsize,
     stopped: AtomicUsize,
+    stop_barrier: Mutex<Option<(std::sync::mpsc::Sender<()>, std::sync::mpsc::Receiver<()>)>>,
     flag: Mutex<Option<Arc<AtomicBool>>>,
 }
 impl CaptureDriver for Capture {
@@ -173,6 +174,12 @@ impl CaptureDriver for Capture {
     }
     fn stop(&self) -> io::Result<()> {
         self.stopped.fetch_add(1, Ordering::AcqRel);
+        if let Some((entered, release)) = self.stop_barrier.lock().unwrap().take() {
+            entered.send(()).map_err(io::Error::other)?;
+            release
+                .recv_timeout(Duration::from_secs(6))
+                .map_err(io::Error::other)?;
+        }
         if let Some(flag) = self.flag.lock().unwrap().take() {
             flag.store(false, Ordering::Release);
         }
@@ -355,6 +362,11 @@ fn cancel_switch_never_restarts_capture_and_allows_fresh_control() {
     h.connect();
     assert!(h.desktop.update_control(ControlOptions::ALL).is_err());
     h.active();
+    // Hold native cleanup so cancellation happens before a permission request.
+    // Cancelling after that request may intentionally close the connection.
+    let (entered_tx, entered_rx) = std::sync::mpsc::channel();
+    let (release_tx, release_rx) = std::sync::mpsc::channel();
+    *h.capture.stop_barrier.lock().unwrap() = Some((entered_tx, release_rx));
     h.desktop
         .update_control(ControlOptions {
             keyboard: true,
@@ -362,8 +374,9 @@ fn cancel_switch_never_restarts_capture_and_allows_fresh_control() {
             shortcut_mapping: true,
         })
         .unwrap();
-    h.wait(|s| s.connection.phase == "updating" && h.capture.stopped.load(Ordering::Acquire) > 0);
+    entered_rx.recv_timeout(Duration::from_secs(6)).unwrap();
     h.desktop.stop_control();
+    release_tx.send(()).unwrap();
     h.wait(|s| s.connection.phase == "connected");
     assert_eq!(h.capture.started.load(Ordering::Acquire), 1);
     h.released();
