@@ -1,0 +1,54 @@
+name: Build macOS packages
+on:
+  workflow_dispatch:
+    inputs:
+      signing:
+        description: 'test = not notarized; signed = Developer ID + Apple notarization (requires secrets)'
+        type: choice
+        options: [test, signed]
+        default: test
+permissions:
+  contents: read
+jobs:
+  package:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-14
+            arch: arm64
+          - runner: macos-15-intel
+            arch: x86_64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+      - name: Check runner architecture
+        run: test "$(uname -m)" = '${{ matrix.arch }}'
+      - name: Build test DMG (not notarized)
+        if: inputs.signing == 'test'
+        run: bash scripts/package-macos.sh test
+      - name: Build signed and notarized DMG
+        if: inputs.signing == 'signed'
+        env:
+          PDL_CERTIFICATE_BASE64: ${{ secrets.PDL_CERTIFICATE_BASE64 }}
+          PDL_CERTIFICATE_PASSWORD: ${{ secrets.PDL_CERTIFICATE_PASSWORD }}
+          PDL_SIGNING_IDENTITY: ${{ secrets.PDL_SIGNING_IDENTITY }}
+          PDL_APPLE_ID: ${{ secrets.PDL_APPLE_ID }}
+          PDL_APPLE_PASSWORD: ${{ secrets.PDL_APPLE_PASSWORD }}
+          PDL_APPLE_TEAM_ID: ${{ secrets.PDL_APPLE_TEAM_ID }}
+        run: bash scripts/package-macos.sh signed
+      - uses: actions/upload-artifact@v4
+        with:
+          name: personal-device-link-macos-${{ matrix.arch }}-${{ inputs.signing }}
+          path: |
+            dist/*.dmg
+            dist/*.sha256
+          if-no-files-found: error
+          retention-days: 14

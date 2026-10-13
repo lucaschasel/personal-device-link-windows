@@ -1,0 +1,13 @@
+Personal Device Link 0.15.1 — Mac 安装
+
+普通用户应使用应用包：下载与你的 Mac 芯片匹配的 DMG，将 Personal Device Link.app 拖到“应用程序”，以后直接打开。无需每次编译或运行脚本。
+
+当前仓库已配置 GitHub Actions 自动生成 Intel / Apple Silicon 应用包，需维护者执行构建并发布后才能下载。test 包未公证，系统仍可能拦截；正式分发需 Developer ID 签名与 Apple 公证，不能通过修改启动脚本代替。
+
+本文件所在的是源码包，不包含预编译的 Mac 应用。暂时没有应用包时，在 Mac 终端进入源码目录，运行一次：
+  bash scripts/build-macos-gui.sh
+然后将 desktop/src-tauri/target/release/bundle/macos/Personal Device Link.app 拖到“应用程序”。前提是已安装 Rust、Node.js 和 Xcode Command Line Tools。
+
+根目录“启动 Personal Device Link.command”仅供开发便利，也可能受系统安全检查拦截，不再作为安装入口。不要关闭系统安全检查。
+
+安全提示、单个可信测试包的系统许可方式及辅助功能授权见 docs/macos-quickstart.md；自动构建与正式签名见 docs/releasing.md。

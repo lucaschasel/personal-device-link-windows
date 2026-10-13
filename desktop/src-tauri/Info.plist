@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>NSBluetoothAlwaysUsageDescription</key><string>通过蓝牙连接您配对的电脑，离线传输您选择的控制、文件和剪贴板内容。</string>
+<key>NSBluetoothPeripheralUsageDescription</key><string>通过蓝牙连接您配对的电脑。</string>
+<key>NSLocalNetworkUsageDescription</key><string>发现附近电脑，传输您主动开启的键鼠控制、经确认的文件，以及经对方同意后开启的双向剪贴板内容。</string>
+<key>NSBonjourServices</key><array><string>_pdl._tcp</string></array>
+</dict></plist>

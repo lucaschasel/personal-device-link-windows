@@ -1,0 +1,20 @@
+[package]
+name = "personal-device-link-desktop"
+version = "0.15.1"
+edition = "2021"
+publish = false
+license = "MIT"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+personal-device-link = { path = "../.." }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+uuid = { version = "1", features = ["v4"] }
+
+[features]
+custom-protocol = ["tauri/custom-protocol"]
