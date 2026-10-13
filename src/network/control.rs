@@ -221,7 +221,7 @@ pub fn run_input_control(
     mut client: super::client::Client,
     running: Arc<AtomicBool>,
 ) -> io::Result<()> {
-    #[cfg(any(windows, target_os = "macos"))]
+    #[cfg(windows)]
     {
         use std::thread;
         let queue = Arc::new(InputQueue::new(512));
@@ -239,12 +239,7 @@ pub fn run_input_control(
             let disconnect = client.disconnect();
             result.and(cleanup).and(disconnect)
         });
-        #[cfg(target_os = "macos")]
-        let capture_result = crate::platform::macos::input_capture::run_with_config(
-            queue,
-            Arc::clone(&running),
-            config,
-        );
+
         #[cfg(windows)]
         let capture_result = (|| {
             let capture = crate::platform::windows::input_capture::Capture::start(
@@ -264,7 +259,7 @@ pub fn run_input_control(
             .map_err(|_| io::Error::other("input sender thread panicked"))?;
         capture_result.and(network_result)
     }
-    #[cfg(not(any(windows, target_os = "macos")))]
+    #[cfg(not(windows))]
     {
         let _ = (&mut client, running);
         Err(io::Error::new(

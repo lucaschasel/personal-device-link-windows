@@ -15,9 +15,9 @@ cargo test --locked --manifest-path desktop/src-tauri/Cargo.toml --bin personal-
 
 ## CI 与安装包
 
-GitHub Actions 对 Windows、macOS 执行 Rust 检查和测试，以及桌面构建。成功的桌面任务上传 Windows 便携 ZIP 或 macOS 未公证测试 DMG。单独的 Mac 打包工作流提供 Intel 与 Apple Silicon 两种架构，以及正式签名、公证模式。
+本仓库 CI 只在 Windows 上执行 Rust 与前端检查、测试及应用打包。另一个系统由其独立仓库 CI 验证。
 
-CI 的 macOS 构建会编译 Objective-C / IOBluetooth 辅助程序。跨目标 Rust 类型检查不等于原生 Mac 构建成功。Mac runner 没有双机射频测试条件，构建成功也不表示蓝牙兼容性已通过实机验收。
+Windows CI 生成便携 ZIP。蓝牙与真实系统输入仍需双机验证。
 
 ## 实机验收
 

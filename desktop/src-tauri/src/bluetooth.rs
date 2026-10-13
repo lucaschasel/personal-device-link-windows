@@ -93,11 +93,7 @@ impl Bluetooth {
             return Err("蓝牙已启动，请先停止后重试".into());
         }
         let executable = std::env::current_exe().map_err(|e| e.to_string())?;
-        let helper = executable.with_file_name(if cfg!(windows) {
-            "bluetooth_bridge.exe"
-        } else {
-            "bluetooth_bridge"
-        });
+        let helper = executable.with_file_name("bluetooth_bridge.exe");
         if !helper.is_file() {
             return Err(
                 "缺少蓝牙组件，请重新安装完整应用包；源码构建请按构建说明包含蓝牙组件".into(),

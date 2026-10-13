@@ -1,10 +1,10 @@
-param([string]$OutputName = 'personal-device-link-v0151-source.zip')
+param([string]$OutputName = 'personal-device-link-v0151-windows-source.zip')
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $outputDirectory = Join-Path $projectRoot 'dist'
 New-Item -ItemType Directory -Force -Path $outputDirectory | Out-Null
 $outputPath = Join-Path $outputDirectory $OutputName
-$sourceFiles = @('Cargo.toml', 'Cargo.lock', 'README.md', 'LICENSE', '.gitignore', '.gitattributes', '启动 Personal Device Link.command', 'Mac 安装说明.txt') |
+$sourceFiles = @('Cargo.toml', 'Cargo.lock', 'README.md', 'LICENSE', '.gitignore', '.gitattributes') |
     ForEach-Object { Get-Item -LiteralPath (Join-Path $projectRoot $_) }
 foreach ($directory in @('src', 'tests', 'docs', 'scripts', '.github')) {
     $sourceFiles += Get-ChildItem -LiteralPath (Join-Path $projectRoot $directory) -File -Recurse -Force
@@ -13,7 +13,7 @@ $sourceFiles += @('package.json', 'package-lock.json', 'tsconfig.json', 'index.h
     ForEach-Object { Get-Item -LiteralPath (Join-Path $projectRoot "desktop/$_") }
 $sourceFiles += Get-ChildItem -LiteralPath (Join-Path $projectRoot 'desktop/src') -File -Recurse
 $sourceFiles += Get-ChildItem -LiteralPath (Join-Path $projectRoot 'desktop/tests') -File -Recurse
-$sourceFiles += @('Cargo.toml', 'Cargo.lock', 'build.rs', 'tauri.conf.json', 'Info.plist') |
+$sourceFiles += @('Cargo.toml', 'Cargo.lock', 'build.rs', 'tauri.conf.json') |
     ForEach-Object { Get-Item -LiteralPath (Join-Path $projectRoot "desktop/src-tauri/$_") }
 foreach ($directory in @('src', 'icons', 'capabilities', 'examples')) {
     $path = Join-Path $projectRoot "desktop/src-tauri/$directory"

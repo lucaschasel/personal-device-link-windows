@@ -121,7 +121,7 @@ fn run() -> io::Result<()> {
             no_discovery,
             allow_control,
         } => {
-            if allow_control && !cfg!(any(windows, target_os = "macos")) {
+            if allow_control && !cfg!(windows) {
                 return Err(io::Error::new(
                     io::ErrorKind::Unsupported,
                     "input receiving is not implemented for this OS",
@@ -248,11 +248,10 @@ fn control_input(
     seconds: u64,
     running: Arc<AtomicBool>,
 ) -> io::Result<()> {
-    #[cfg(any(windows, target_os = "macos"))]
+    #[cfg(windows)]
     {
         use std::io::Write;
-        #[cfg(target_os = "macos")]
-        personal_device_link::platform::macos::input_capture::check_permission()?;
+
         print!("Enter the code shown on the receiver: ");
         io::stdout().flush()?;
         let mut token = String::new();
@@ -274,7 +273,7 @@ fn control_input(
         println!("Input control stopped. Keyboard and pointer are local again.");
         result
     }
-    #[cfg(not(any(windows, target_os = "macos")))]
+    #[cfg(not(windows))]
     {
         let _ = (target, name, seconds, running);
         Err(io::Error::new(

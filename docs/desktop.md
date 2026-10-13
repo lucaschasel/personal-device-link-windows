@@ -6,7 +6,7 @@
 
 Windows 完整解压应用包，运行 `Personal Device Link.exe`；保留随附 DLL 和 `bluetooth_bridge.exe`。需要 WebView2 Runtime。当前本地 Windows 包未签名。
 
-macOS 使用与芯片架构匹配的应用 DMG，将 `.app` 拖到“应用程序”。应用包由维护者通过 GitHub 工作流构建；尚未发布时可从源码构建一次。不要把源码里的 `.command` 当作公共安装入口。安全检查与安装方法见 [Mac 安装说明](macos-quickstart.md)。
+Mac 安装和构建请查看 [Mac 仓库](https://github.com/lucaschasel/personal-device-link-mac)。
 
 ## 设备连接
 
@@ -27,7 +27,7 @@ macOS 使用与芯片架构匹配的应用 DMG，将 `.app` 拖到“应用程�
 | Windows | Ctrl + Alt + Esc | 按住 Ctrl + Alt |
 | macOS | Control + Option + Esc | 按住 Control + Option |
 
-任何页面的顶部均可停止当前控制或撤回等待中的请求。接收方也可关闭控制接收，文件传输不依赖这个开关。macOS 发起及接收控制可能需要辅助功能权限，排查见 [Mac 安装说明](macos-quickstart.md)。
+任何页面的顶部均可停止当前控制或撤回等待中的请求。接收方也可关闭控制接收，文件传输不依赖这个开关。macOS 发起及接收控制可能需要辅助功能权限，排查见 [Mac 安装说明](https://github.com/lucaschasel/personal-device-link-mac/blob/main/docs/macos-quickstart.md)。
 
 跨系统快捷键适配开启时，macOS → Windows 的 Command 对应 Ctrl，Windows → macOS 的 Ctrl 对应 Command、Win 对应 Control；同系统保持原有语义。关闭后按实体修饰键对应。触摸板轻点与双指右键取决于本机系统设置。
 
@@ -47,4 +47,4 @@ macOS 使用与芯片架构匹配的应用 DMG，将 `.app` 拖到“应用程�
 
 ## 开发验证
 
-Windows 构建：`powershell -File scripts/Build-Desktop.ps1`。Mac 构建：`bash scripts/build-macos-gui.sh`。平台对应的原生构建与实机交互需分别验证，Windows 上对 Mac Rust 接口的检查不能代替 Mac 原生构建。
+Windows 构建：`powershell -File scripts/Build-Desktop.ps1`。Mac 客户端请使用 [Mac 仓库](https://github.com/lucaschasel/personal-device-link-mac)。

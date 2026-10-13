@@ -321,92 +321,15 @@ fn run(args: &[String]) -> io::Result<()> {
         result
     }
 }
-#[cfg(target_os = "macos")]
-fn run(args: &[String]) -> io::Result<()> {
-    use std::io::BufReader;
-    use std::process::{Command, Stdio};
-    let (role, peer) = parse(&args[1..]).map_err(io::Error::other)?;
-    let (address, channel) = peer.unwrap_or_default();
-    let arguments = role
-        .arguments(&address, channel)
-        .map_err(io::Error::other)?;
-    let helper = std::env::current_exe()?.with_file_name("pdl-rfcomm-mac");
-    let mut child = Command::new(helper)
-        .args(arguments)
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .spawn()?;
-    let result = (|| {
-        let mut input = BufReader::new(child.stdout.take().unwrap());
-        // Native helper status is a bounded JSON line prefix, then only raw bytes.
-        // Keep BufReader alive: it may already contain the remote bridge greeting.
-        if role == Role::Listen {
-            let event = native_status(&mut input, "listening")?;
-            let address = event["address"].as_str().unwrap_or_default();
-            let channel = event["channel"]
-                .as_u64()
-                .and_then(|n| u16::try_from(n).ok())
-                .unwrap_or(0);
-            personal_device_link::bluetooth::address(address, channel).map_err(io::Error::other)?;
-            println!("{event}");
-        }
-        native_status(&mut input, "connected")?;
-        println!("{}", serde_json::json!({"event":"negotiating"}));
-        bridge(
-            Box::new(input),
-            Box::new(child.stdin.take().unwrap()),
-            role.odd_stream_ids(),
-            "127.0.0.1:45833".parse().unwrap(),
-            "127.0.0.1:45832".parse().unwrap(),
-        )
-    })();
-    let _ = child.kill();
-    let _ = child.wait();
-    result
-}
-#[cfg(any(target_os = "macos", test))]
-fn native_status(
-    input: &mut impl std::io::BufRead,
-    expected: &str,
-) -> io::Result<serde_json::Value> {
-    use std::io::BufRead;
-    let mut line = Vec::new();
-    input.take(4096).read_until(b'\n', &mut line)?;
-    if line.last() != Some(&b'\n') {
-        return Err(io::Error::other(
-            "native Bluetooth status missing or too long",
-        ));
-    }
-    let event: serde_json::Value = serde_json::from_slice(&line).map_err(io::Error::other)?;
-    if event["event"].as_str() != Some(expected) {
-        return Err(io::Error::other("unexpected native Bluetooth status"));
-    }
-    Ok(event)
-}
-#[cfg(not(any(windows, target_os = "macos")))]
+
+#[cfg(not(windows))]
 fn run(_: &[String]) -> io::Result<()> {
     Err(io::Error::other("unsupported platform"))
 }
 #[cfg(test)]
 mod tests {
     use super::*;
-    #[test]
-    fn native_status_preserves_prefetched_radio_bytes_and_rejects_invalid_prefix() {
-        use std::io::BufReader;
-        let bytes = b"{\"event\":\"connected\"}\nPDLBT001";
-        let mut input = BufReader::new(&bytes[..]);
-        native_status(&mut input, "connected").unwrap();
-        let mut hello = [0; 8];
-        input.read_exact(&mut hello).unwrap();
-        assert_eq!(&hello, b"PDLBT001");
-        for bad in [
-            vec![b'x'; 5000],
-            b"{\"event\":\"ready\"}\n".to_vec(),
-            b"{}".to_vec(),
-        ] {
-            assert!(native_status(&mut BufReader::new(&bad[..]), "connected").is_err());
-        }
-    }
+
     #[test]
     fn both_directions_carry_multiple_frames_and_stop_on_wire_disconnect() {
         for role in [Role::Listen, Role::Connect] {

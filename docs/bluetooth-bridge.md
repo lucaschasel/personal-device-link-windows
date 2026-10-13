@@ -8,7 +8,7 @@ Windows 与 macOS 均已实现等待端和主动端，连接角色不决定谁�
 | macOS ↔ macOS | 任一端 | 另一端 |
 | Windows ↔ macOS | 任一端 | 另一端 |
 
-**验证边界：新增角色和组合已经实现，但本机只有 Windows 构建环境。自动化模拟不能替代射频连接验证；macOS 原生辅助程序编译、两台 Windows、两台 Mac，以及 Windows 主动连接 Mac 均需实机验收。**
+**验证边界：新增角色和组合已实现。Windows 与 Mac 原生构建由各自仓库 CI 验证；模拟测试不能替代双机射频连接验收。**
 
 ## 桌面操作
 
@@ -35,7 +35,7 @@ bluetooth_bridge --listen
 bluetooth_bridge --connect AABBCCDDEEFF 7
 ```
 
-Mac 原生构建及安装见 [Mac 说明](macos-quickstart.md)，GitHub 自动生成应用包见 [发布指南](releasing.md)。本应用不自动完成系统配对，也不修改防火墙、系统热点或蓝牙开关。应用层尚未加密，只连接可信设备。
+Mac 原生构建及安装见 [Mac 说明](https://github.com/lucaschasel/personal-device-link-mac/blob/main/docs/macos-quickstart.md)，GitHub 自动生成应用包见 [发布指南](releasing.md)。本应用不自动完成系统配对，也不修改防火墙、系统热点或蓝牙开关。应用层尚未加密，只连接可信设备。
 
 接口依据：[Microsoft Bluetooth connect](https://learn.microsoft.com/en-us/windows/win32/bluetooth/bluetooth-and-connect)、[Apple 蓝牙服务发布](https://developer.apple.com/library/archive/documentation/DeviceDrivers/Conceptual/Bluetooth/BT_Develop_BT_Apps/BT_Develop_BT_Apps.html)。
 

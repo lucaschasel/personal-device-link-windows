@@ -32,8 +32,8 @@ Personal Device Link — 0.15.1 / 桌面交互收尾与开源发布
 蓝牙：首次仍须在系统设置完成蓝牙配对。等待连接的一端显示地址与频道，发起端填写后建立链路。Windows 和 macOS 均可选择“等待对方连接”或“主动连接对方”，支持同系统和跨系统组合；两端选择不同角色。链路就绪后任一端点击“连接蓝牙设备”。蓝牙与局域网使用同样的应用授权流程。
 连接方式显示“蓝牙 / 本机桥接”表示回环桥接地址；其他地址显示“局域网 / IP 直连”。设备名称和系统是对方提供的信息。
 
-本机 Windows 构建未签名，需要 WebView2 Runtime。macOS 安装与安全提示见源码包 docs/macos-quickstart.md；GitHub 工作流可构建含蓝牙组件的 App / DMG。
-Windows 自动化测试使用模拟输入/剪贴板；自动化回环模拟已覆盖双向传输和角色互换；本版新增蓝牙组合及 Mac 原生构建仍需实机验收。仅用于受信任设备与网络；应用层 TCP 尚未加密。
+本机 Windows 构建未签名，需要 WebView2 Runtime。Mac 客户端及安装说明：https://github.com/lucaschasel/personal-device-link-mac。
+Windows 自动化测试使用模拟输入/剪贴板；自动化回环模拟已覆盖双向传输和角色互换；本版新增蓝牙组合仍需实机验收。仅用于受信任设备与网络；应用层 TCP 尚未加密。
 
 '@ | Set-Content -Encoding utf8 (Join-Path $outputDirectory '使用说明.txt')
 Compress-Archive -LiteralPath $outputDirectory -DestinationPath (Join-Path $projectRoot 'dist/personal-device-link-v0151-windows.zip') -Force

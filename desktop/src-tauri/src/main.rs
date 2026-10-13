@@ -22,52 +22,15 @@ struct NativeCapture {
     windows:
         std::sync::Mutex<Option<personal_device_link::platform::windows::input_capture::Capture>>,
 }
-#[cfg(target_os = "macos")]
-thread_local! {
-    static CAPTURE: std::cell::RefCell<Option<personal_device_link::platform::macos::input_capture::Capture>> = const { std::cell::RefCell::new(None) };
-    static CAPTURE_ERROR: std::cell::RefCell<Option<String>> = const { std::cell::RefCell::new(None) };
-}
 
-#[cfg(target_os = "macos")]
-fn release_stopped_capture() {
-    CAPTURE.with(|slot| {
-        let mut slot = slot.borrow_mut();
-        if slot.as_ref().is_some_and(|capture| !capture.is_running()) {
-            if let Some(capture) = slot.take() {
-                if let Err(e) = capture.finish() {
-                    CAPTURE_ERROR.with(|error| *error.borrow_mut() = Some(e.to_string()));
-                }
-            }
-        }
-    });
-}
-#[cfg(target_os = "macos")]
-impl NativeCapture {
-    fn main_thread(
-        &self,
-        task: impl FnOnce() -> io::Result<()> + Send + 'static,
-    ) -> io::Result<()> {
-        let (sender, receiver) = std::sync::mpsc::sync_channel(1);
-        self.app
-            .run_on_main_thread(move || {
-                let _ = sender.send(task());
-            })
-            .map_err(io::Error::other)?;
-        receiver.recv().map_err(io::Error::other)?
-    }
-}
 impl CaptureDriver for NativeCapture {
     fn permission(&self) -> io::Result<()> {
-        #[cfg(target_os = "macos")]
-        {
-            self.main_thread(personal_device_link::platform::macos::input_capture::check_permission)
-        }
         #[cfg(windows)]
         {
             let _ = &self.app;
             Ok(())
         }
-        #[cfg(not(any(windows, target_os = "macos")))]
+        #[cfg(not(windows))]
         {
             Err(io::Error::other("当前系统尚未实现输入捕获"))
         }
@@ -78,27 +41,6 @@ impl CaptureDriver for NativeCapture {
         running: Arc<AtomicBool>,
         config: CaptureConfig,
     ) -> io::Result<()> {
-        #[cfg(target_os = "macos")]
-        {
-            self.main_thread(move || {
-                if !running.load(Ordering::Acquire) {
-                    return Err(io::Error::other("已取消控制"));
-                }
-                CAPTURE.with(|slot| {
-                    let mut slot = slot.borrow_mut();
-                    if slot.is_some() {
-                        return Err(io::Error::other("已有捕获会话"));
-                    }
-                    CAPTURE_ERROR.with(|error| error.borrow_mut().take());
-                    *slot = Some(
-                        personal_device_link::platform::macos::input_capture::Capture::start_with_config(
-                            queue, running, true, config,
-                        )?,
-                    );
-                    Ok(())
-                })
-            })
-        }
         #[cfg(windows)]
         {
             let mut slot = self.windows.lock().unwrap_or_else(|e| e.into_inner());
@@ -112,26 +54,13 @@ impl CaptureDriver for NativeCapture {
             );
             Ok(())
         }
-        #[cfg(not(any(windows, target_os = "macos")))]
+        #[cfg(not(windows))]
         {
             let _ = (queue, running, config);
             Err(io::Error::other("当前系统尚未实现输入捕获"))
         }
     }
     fn stop(&self) -> io::Result<()> {
-        #[cfg(target_os = "macos")]
-        {
-            self.main_thread(|| {
-                release_stopped_capture();
-                let result = CAPTURE.with(|slot| {
-                    slot.borrow_mut()
-                        .take()
-                        .map_or(Ok(()), |capture| capture.finish())
-                });
-                let previous = CAPTURE_ERROR.with(|error| error.borrow_mut().take());
-                result.and(previous.map_or(Ok(()), |error| Err(io::Error::other(error))))
-            })
-        }
         #[cfg(windows)]
         {
             self.windows
@@ -140,7 +69,7 @@ impl CaptureDriver for NativeCapture {
                 .take()
                 .map_or(Ok(()), |capture| capture.finish())
         }
-        #[cfg(not(any(windows, target_os = "macos")))]
+        #[cfg(not(windows))]
         {
             Ok(())
         }
@@ -393,13 +322,7 @@ fn main() {
         .setup(|app| {
             let name = std::env::var("COMPUTERNAME")
                 .or_else(|_| std::env::var("HOSTNAME"))
-                .unwrap_or_else(|_| {
-                    if cfg!(target_os = "macos") {
-                        "My Mac".into()
-                    } else {
-                        "Windows-PC".into()
-                    }
-                });
+                .unwrap_or_else(|_| "Windows-PC".into());
             let desktop = Arc::new(Desktop::new(
                 Device::local(name)?,
                 Arc::new(NativeCapture {
@@ -451,12 +374,6 @@ fn main() {
         .build(tauri::generate_context!())
         .expect("无法启动桌面界面");
     app.run(|app, event| {
-        #[cfg(target_os = "macos")]
-        if matches!(&event, tauri::RunEvent::MainEventsCleared) {
-            // Emergency stop restores the local cursor without waiting for a
-            // network heartbeat/stop acknowledgement to time out.
-            release_stopped_capture();
-        }
         if let tauri::RunEvent::ExitRequested { api, .. } = event {
             if !app.state::<AppState>().done.load(Ordering::Acquire) {
                 api.prevent_exit();

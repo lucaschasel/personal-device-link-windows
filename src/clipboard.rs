@@ -1,6 +1,6 @@
 //! Authenticated, opt-in clipboard exchange on its own TCP connection.
 //! Native clipboard access only happens inside an authorized session.
-#[cfg(any(windows, target_os = "macos"))]
+#[cfg(windows)]
 pub mod native;
 pub mod wire;
 

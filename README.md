@@ -1,74 +1,32 @@
-# Personal Device Link
+# Personal Device Link — Windows
 
-[![CI](https://github.com/lucaschasel/personal-device-link/actions/workflows/ci.yml/badge.svg)](https://github.com/lucaschasel/personal-device-link/actions/workflows/ci.yml) · [MIT License](LICENSE) · [构建记录与下载](https://github.com/lucaschasel/personal-device-link/actions)
+[![Windows CI](https://github.com/lucaschasel/personal-device-link-windows/actions/workflows/ci.yml/badge.svg)](https://github.com/lucaschasel/personal-device-link-windows/actions/workflows/ci.yml) · [MIT](LICENSE)
 
-让两台电脑直接协作：按需共享键盘、鼠标和剪贴板，双向传输文件。使用 Rust 核心与 Tauri 桌面界面，无需账号或云端中转。
+这是 **Windows 客户端源码仓库**，用于按需共享键盘、鼠标和剪贴板，以及双向传输文件。使用 Rust 与 Tauri，无需账号或云端中转。
 
-当前版本 **0.15.1**，应用协议 **7**。建议两端使用同一版本。连接仅建立通信；控制和剪贴板共享需要对方逐次同意，接收文件需要确认保存位置。
+**Mac 用户请前往 [personal-device-link-mac](https://github.com/lucaschasel/personal-device-link-mac)。** 本仓库不包含 macOS 原生实现或 Mac 打包脚本。
 
-## 支持哪些设备
+当前版本 **0.15.1**，支持 Windows 10/11。Windows CI 在 x64 环境构建；其他架构尚未提供验证包。
 
-| 连接方式 | 设备组合 | 说明 |
-| --- | --- | --- |
-| 局域网 / IP 直连 | Windows ↔ Windows、macOS ↔ macOS、Windows ↔ macOS | 同系统与跨系统均支持；任一端可发起控制或传文件 |
-| 蓝牙桥接（实验性） | Windows ↔ Windows、macOS ↔ macOS、Windows ↔ macOS | 两端均可等待或主动连接；先系统配对，再选不同角色。新增组合待实机验收 |
+## 下载与运行
 
-支持 Windows 10/11 与 macOS 11 及以上版本。Linux、手机和平板尚未实现完整桌面支持。控制方向由使用者选择，不绑定操作系统；切换方向前先停止当前控制。
+在 [Actions](https://github.com/lucaschasel/personal-device-link-windows/actions/workflows/ci.yml) 中打开成功的运行，下载 Windows artifact，解压其中的 `personal-device-link-v0151-windows.zip`，再完整解压应用目录。
 
-局域网可以是 Wi-Fi、有线网络或可用热点，不要求能访问互联网。完全没有局域网时，可使用上述支持组合的蓝牙桥接。不要假定 Windows 在无上游网络时一定能开启系统移动热点。
+双击 `Personal Device Link.exe`，保留随附的 `bluetooth_bridge.exe` 和 DLL。需要 Microsoft Edge WebView2 Runtime。当前便携包未进行代码签名，Actions 产物保留 14 天。
 
-## 安装与打开
+紧急停止：**Ctrl + Alt + Esc**。首次连接时允许应用通过防火墙访问可信的本地网络。
 
-下载对应操作系统的**应用包**，源码包供开发者构建。Mac 日常使用不需要运行 `.command` 或安装编译工具。
+## 在 Windows 构建
 
-| 系统 | 应用包 | 打开方式 |
-| --- | --- | --- |
-| Windows | `personal-device-link-v0151-windows.zip` | 完整解压后运行 `Personal Device Link.exe`，保留蓝牙组件和随附 DLL；需要 WebView2 Runtime |
-| Mac Apple Silicon | `personal-device-link-0.15.1-macos-arm64-signed.dmg` | 打开 DMG，将应用拖到“应用程序”后打开 |
-| Mac Intel | `personal-device-link-0.15.1-macos-x86_64-signed.dmg` | 同上 |
-
-**Mac 表中是工作流生成的正式包文件名，不表示已经提供下载。** 每次推送后的 CI 会构建 Windows ZIP 和未公证的 Mac 测试 DMG，可在成功的 Actions 运行底部下载 Artifacts。正式 Mac 包需维护者运行 `Build macOS packages` 的 signed 模式并完成签名、公证，再将产物附到 GitHub Release。工作流产物可从 Actions 下载；它不会自动发布 Release。带 `test` 的包是未公证测试包，系统仍可能拦截。具体安装、安全提示及当前源码构建方法见 [Mac 安装说明](docs/macos-quickstart.md)。
-
-本地 Windows 便携包尚未进行代码签名。macOS 的签名、公证流程见 [发布指南](docs/releasing.md)。
-
-## 连接与使用
-
-1. 两台设备接入同一局域网并打开应用，在“设备连接”中选择对方。无法发现时可输入对方的 IP 地址。允许应用访问本地网络，无需关闭防火墙。
-2. 连接后按需勾选键盘、鼠标，点击“开始所选控制”。对方弹窗显示发起设备、连接方式和具体权限，同意后才开始。连接本身不会接管输入。
-3. 开启剪贴板共享需对方确认；随后双向同步新复制的文字、图片和普通文件。旧内容需点击“同步当前内容”才发送。
-4. 在“文件传输”中选文件发送，对方选择保存位置。可查看进度、取消传输，完成时校验且不覆盖已有文件。
-
-控制中可修改开关并点击“应用选择”。新增权限需再次同意；减少权限或停止无需等待对方。接收方也可停止控制。
-
-紧急停止按本机系统选择：Windows **Ctrl + Alt + Esc**；macOS **Control + Option + Esc**。macOS 使用键鼠控制时可能需要辅助功能授权；这与应用安装时的 Gatekeeper 检查是两回事。
-
-更多内容：[桌面使用](docs/desktop.md) · [授权机制](docs/consent.md) · [文件传输](docs/files.md) · [蓝牙说明](docs/bluetooth-bridge.md)。测试范围与实机验收见 [测试说明](docs/testing.md)。
-
-## 当前边界
-
-- 仅连接可信设备。应用层控制与文件通道尚未加密，设备名称与系统由对方提供，不作为可信身份认证。
-- 剪贴板授权后，新复制的敏感内容也会同步；可随时关闭。普通文件单次最多 16 个、总量 256 MiB，文件夹请先压缩。富文本按纯文本处理，不同步剪切删除动作。
-- 不含屏幕画面串流，主要用于看得到对方屏幕的设备协作。
-- 蓝牙支持范围以表格为准，不宣称任意两台电脑都能通过蓝牙连接。无线硬件、系统权限及真实双机交互需要实机验收。
-
-## 开发与验证
-
-安装 Rust stable、Node.js LTS（CI 使用 22）。Windows 需要 C++ 构建工具；macOS 需要 Xcode Command Line Tools。
+安装 Rust stable、Visual Studio C++ 构建工具及 Windows SDK、Node.js（CI 使用 22）。在本仓库根目录执行：
 
 ```powershell
-# Windows：构建桌面与蓝牙组件并打包
 powershell -File scripts/Build-Desktop.ps1
 ```
 
-```bash
-# macOS：本机源码构建，仅开发者需要
-bash scripts/build-macos-gui.sh
-open "desktop/src-tauri/target/release/bundle/macos/Personal Device Link.app"
-```
+输出位于 `dist/personal-device-link-v0151-windows.zip`。构建时需获取依赖；已构建应用的设备通信不需要互联网。
 
-构建需要联网获取工具和依赖，已构建应用的设备通信不需要互联网。不要把源码目录里的 `.command` 当成面向普通用户的安装器。
-
-```bash
+```powershell
 cargo fmt --all -- --check
 cargo clippy --locked --all-targets -- -D warnings
 cargo test --locked --all-targets
@@ -78,10 +36,32 @@ npm test
 npm run build
 ```
 
-核心命令行工具可通过 `cargo run -- --help` 查看参数；其控制码流程与桌面弹窗授权不同。不要让 CLI 与 GUI 同时监听同一个端口。
+## 使用
 
-项目结构：`src/` 为通信与系统输入核心，`desktop/src/` 为界面，`desktop/src-tauri/` 为桌面桥接，`tests/` 为自动化测试，`scripts/` 为构建与诊断脚本。GitHub 持续集成覆盖 Windows 和 macOS，实际执行状态以仓库 Actions 为准。
+1. 两台设备打开各自系统的应用，接入同一局域网，在附近设备中选择对方；也可以手动输入 IP。局域网不需要互联网。
+2. 完全没有局域网时，可尝试实验性蓝牙桥接：先在系统设置配对，一端选择等待连接，另一端填写地址与频道主动连接。链路就绪后点击“连接蓝牙设备”。
+3. 连接后按需选择键盘、鼠标或共享剪贴板。对方弹窗显示发起设备、连接方式和请求内容，同意后才生效。连接不会自动接管输入。
+4. 在文件传输页选择文件，对方确认保存位置后开始；支持进度、取消和 SHA-256 校验，不覆盖已有文件。
+
+控制中可调整功能；增加权限需要对方再次确认。剪贴板支持新复制的文字、图片和普通文件，旧内容需主动同步，可随时关闭。
+
+## 互通与边界
+
+两端保持应用协议 **7**，支持 Windows ↔ Windows、Mac ↔ Mac、Windows ↔ Mac。任一端均可发起控制和传输，切换方向前先停止当前控制。蓝牙两端均可选择等待或主动连接，新增组合仍需实机验收。
+
+- 只连接可信设备：应用层 TCP 尚未加密，设备名称不是可信身份认证。
+- 剪贴板授权后新复制的敏感内容也会同步；普通文件单次最多 16 个、总量 256 MiB，文件夹先压缩，不同步剪切删除动作。
+- 不包含屏幕画面串流；主要用于能看到对方屏幕的设备协作。
+- 蓝牙实际可用性受硬件、驱动和系统配对支持影响；CI 编译与模拟测试不能替代双机验证。
+
+## 源码结构
+
+`src/` 包含通信、文件、剪贴板与本平台输入实现；`desktop/` 是 Tauri 桌面端；`tests/` 是模拟与协议测试；`scripts/` 提供本平台构建工具。
+
+两个仓库均可独立构建，无需克隆另一个仓库。为保持独立性，两边各自包含相同的通信协议和通用界面代码；修改协议时应同步更新两边，并验证跨系统兼容性。
+
+更多说明：[桌面使用](docs/desktop.md) · [授权机制](docs/consent.md) · [蓝牙](docs/bluetooth-bridge.md) · [测试](docs/testing.md) · [发布](docs/releasing.md)。
 
 ## 许可证
 
-本项目使用 [MIT License](LICENSE)。第三方依赖遵循各自的许可证。
+[MIT License](LICENSE)。第三方依赖遵循各自许可证。
